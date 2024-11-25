@@ -8,6 +8,7 @@ import 'classes.dart'; // Import the ClassesPage
 import 'sessions.dart'; // Import the SessionsPage
 import 'students.dart'; // Import the StudentsPage
 import 'timetable.dart'; // Import the TimetablePage
+import '/auth/signup.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,19 +27,20 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/login': (context) => const LoginPage(),
-        '/main': (context) => const HomePage(), // Home page after login
+        '/signup': (context) => const SignUpPage(),
+        '/main': (context) => const HomePage(),
       },
       home: FutureBuilder<bool>(
-        future: isAuthenticated(), // Check if authenticated
+        future: isAuthenticated(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.data == true) {
-            return const HomePage(); // Show HomePage if authenticated
+            return const HomePage();
           } else {
-            return const LoginPage(); // Show LoginPage if not authenticated
+            return const LoginPage();
           }
         },
       ),
@@ -46,14 +48,27 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// HomePage that contains your button navigation
+// HomePage with Logout Button and Navigation
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  void _logout(BuildContext context) async {
+    await clearToken(); // Clear the token
+    Navigator.pushReplacementNamed(context, '/login'); // Navigate to LoginPage
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _logout(context), // Call the logout function
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -83,4 +98,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-//  print('Token: $token');

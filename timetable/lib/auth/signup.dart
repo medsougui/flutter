@@ -1,42 +1,46 @@
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
-import 'auth_utils.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SignUpPageState createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   String _errorMessage = '';
   final AuthService _authService = AuthService();
 
-  void _login() async {
+  void _signUp() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       setState(() {
-        _errorMessage = 'Email and password are required';
+        _errorMessage = 'All fields are required';
+      });
+      return;
+    }
+
+    if (password != confirmPassword) {
+      setState(() {
+        _errorMessage = 'Passwords do not match';
       });
       return;
     }
 
     try {
-      // Authenticate with the backend
-      final token = await _authService.login(email, password);
+      // Call the backend to register the user
+      final success = await _authService.signUp(email, password);
 
-      if (token != null) {
-        // Save the JWT token
-        await saveToken(token);
-
-        // Navigate to the HomePage
-        Navigator.pushReplacementNamed(context, '/main');
+      if (success) {
+        Navigator.pop(context); // Navigate back to LoginPage
       }
     } catch (e) {
       setState(() {
@@ -48,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Sign Up')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -63,23 +67,20 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Password'),
             ),
+            TextField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Confirm Password'),
+            ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _login,
-              child: const Text('Login'),
+              onPressed: _signUp,
+              child: const Text('Sign Up'),
             ),
             const SizedBox(height: 20),
             Text(
               _errorMessage,
               style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                // Navigate to the SignUpPage
-                Navigator.pushNamed(context, '/signup');
-              },
-              child: const Text('Don\'t have an account? Sign up here!'),
             ),
           ],
         ),
@@ -87,5 +88,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-// 01110011 01101111 01110101 01100111 01110101 01101001
